@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>BideDPO: Conditional Image Generation</title>
+    <meta name="description" content="BideDPO: Conditional Image Generation with Simultaneous Text and Condition Alignment">
+    <meta property="og:title" content="BideDPO">
+    <meta property="og:description" content="Conditional image generation with simultaneous text and condition alignment">
+    <meta property="og:image" content="static/teaser.png">
+    <style>
+      html { scroll-behavior:smooth; }
+      :root { --bg:#ffffff; --fg:#0b0b0c; --muted:#5c6670; --accent:#2f67f6; --card:#f6f8fb; }
+      html.dark { --bg:#0b0b0c; --fg:#f3f4f6; --muted:#a0a7b0; --accent:#6ea0ff; --card:#14171a; }
+      * { box-sizing:border-box; }
+      body { margin:0; font-family: system-ui,-apple-system, Segoe UI, Roboto, Arial, sans-serif; background:var(--bg); color:var(--fg); }
+      a { color:var(--accent); text-decoration:none; }
+      .container { max-width: 980px; margin: 0 auto; padding: 24px; }
+      header { display:flex; align-items:center; justify-content:space-between; padding:16px 24px; position:sticky; top:0; backdrop-filter:saturate(180%) blur(8px); background:color-mix(in srgb, var(--bg) 92%, transparent); border-bottom:1px solid color-mix(in srgb, var(--muted) 15%, transparent); z-index:100; }
+      .title { font-size: 28px; font-weight: 700; }
+      .actions { display:flex; gap:12px; align-items:center; }
+      nav { display:flex; gap:14px; margin-right:12px; }
+      nav a { color:var(--muted); font-weight:600; padding:6px 8px; border-radius:8px; }
+      nav a:hover { color:var(--fg); background:color-mix(in srgb, var(--card) 70%, transparent); }
+      .btn { padding:8px 12px; border:1px solid color-mix(in srgb, var(--muted) 30%, transparent); border-radius:8px; background:color-mix(in srgb, var(--bg) 94%, transparent); color:var(--fg); font-weight:600; }
+      .btn.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+      .hero { padding: 40px 0; display:grid; grid-template-columns: 1.1fr 0.9fr; gap:24px; align-items:center; }
+      .hero h1 { font-size: 36px; margin:0 0 12px; }
+      .hero p { font-size: 16px; color:var(--muted); }
+      .card { background:var(--card); border:1px solid color-mix(in srgb, var(--muted) 12%, transparent); border-radius:12px; padding:16px; box-shadow: 0 8px 24px color-mix(in srgb, var(--muted) 20%, transparent); }
+      img.teaser { width:100%; border-radius:12px; border:1px solid color-mix(in srgb, var(--muted) 15%, transparent); transition:transform .2s ease; }
+      img.teaser:hover { transform:scale(1.015); }
+      section { margin: 32px 0; scroll-margin-top: 80px; }
+      h2 { margin:0 0 12px; font-size:22px; }
+      ul { margin: 8px 0 0 18px; }
+      code, pre { background:var(--card); border:1px solid color-mix(in srgb, var(--muted) 12%, transparent); border-radius:8px; }
+      pre { padding:12px; overflow:auto; }
+      .lang-toggle { display:flex; gap:8px; align-items:center; }
+      .badge { display:inline-block; padding:4px 8px; border-radius:999px; font-size:12px; background:color-mix(in srgb, var(--accent) 16%, var(--card)); color:var(--accent); border:1px solid color-mix(in srgb, var(--accent) 45%, transparent); }
+      footer { margin-top: 32px; padding: 16px 0; color:var(--muted); border-top:1px solid color-mix(in srgb, var(--muted) 15%, transparent); }
+      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+      .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap:16px; }
+      .figure { position:relative; overflow:hidden; border-radius:12px; border:1px solid color-mix(in srgb, var(--muted) 15%, transparent); background:var(--card); }
+      .figure img { width:100%; display:block; transition: transform .25s ease, filter .25s ease; }
+      .figure:hover img { transform:scale(1.03); filter:brightness(1.05); }
+      .figcap { position:absolute; left:0; bottom:0; right:0; padding:8px 10px; font-size:13px; color:#fff; background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.65) 100%); }
+      .lightbox { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.85); z-index:200; }
+      .lightbox.show { display:flex; }
+      .lightbox img { max-width:90vw; max-height:80vh; border-radius:12px; border:1px solid #333; }
+      .lightbox .caption { color:#fff; margin-top:12px; text-align:center; max-width:75vw; }
+      @media (max-width: 860px) { .hero { grid-template-columns: 1fr; } nav { display:none; } }
+    </style>
+    <script>
+      function toggleDark(){
+        const html=document.documentElement; html.classList.toggle('dark');
+        localStorage.setItem('bidedpo-dark', html.classList.contains('dark')?'1':'0');
+      }
+      document.addEventListener('DOMContentLoaded', ()=>{
+        if(localStorage.getItem('bidedpo-dark')==='1'){ document.documentElement.classList.add('dark'); }
+      });
+    </script>
+  </head>
+  <body>
+    <header>
+      <div class="title">BideDPO</div>
+      <div class="actions">
+        <nav>
+          <a href="#overview">Overview</a>
+          <a href="#abstract">Abstract</a>
+          <a href="#highlights">Highlights</a>
+          <a href="#teaser">Teaser</a>
+          <a href="#method">Method</a>
+          <a href="#dualalign">DualAlign</a>
+          <a href="#coco">COCO</a>
+          <a href="#examples">Examples</a>
+          <a href="#citation">Citation</a>
+        </nav>
+        <button class="btn" onclick="toggleDark()">Toggle Dark</button>
+        <a class="btn primary" href="https://github.com/your-org/BideDPO" target="_blank" rel="noopener">Code</a>
+      </div>
+    </header>
+
+    <div class="container">
+      <section class="hero" id="overview">
+        <div>
+          <h1>Conditional Image Generation with Simultaneous Text and Condition Alignment</h1>
+          <p>Preprint · Models, code, and benchmarks will be released</p>
+          <div class="card">
+            <p class="mono">BideDPO constructs bidirectionally decoupled preference pairs and balances their influence adaptively, enabling robust multi-constraint alignment across text and conditioning inputs.</p>
+          </div>
+        </div>
+        <div>
+          <img class="teaser" src="static/teaser.png" alt="BideDPO teaser">
+        </div>
+      </section>
+
+      <section id="abstract">
+        <h2>Abstract</h2>
+        <div>
+          <p>Conditional image generation augments text-to-image synthesis with structural, spatial, or stylistic priors and is used in many domains. However, current methods struggle to harmonize guidance from both sources when conflicts arise: (1) input-level conflict, where the semantics of the conditioning image contradict the text prompt, and (2) model-bias conflict, where learned generative biases hinder alignment even when the condition and text are compatible.</p>
+          <p>Preference-based optimization techniques, such as DPO, offer a promising solution but remain limited: naive DPO suffers from gradient entanglement between text and condition signals and lacks disentangled, conflict-aware training data for multi-constraint tasks. We propose a self-driven, bidirectionally decoupled DPO framework (BideDPO). Our method constructs two disentangled preference pairs for each sample—one for the condition and one for the text—and manages their influence via Adaptive Loss Balancing. We introduce an automated data pipeline with VLM checks to generate disentangled, conflict-aware data, and embed the entire process within an iterative optimization strategy that progressively refines both the model and the data.</p>
+          <p>We build a DualAlign benchmark to evaluate conflict resolution between text and condition. Experiments on common modalities show that BideDPO delivers substantial gains in text success rate (e.g., +35%) and condition adherence, with robustness validated on COCO. Code, models, and benchmarks will be released.</p>
+        </div>
+      </section>
+
+      <section id="highlights">
+        <h2>Highlights</h2>
+        <ul>
+          <li>Bidirectionally decoupled preference pairs for text and condition.</li>
+          <li>Adaptive Loss Balancing to avoid gradient entanglement.</li>
+          <li>Self-driven data pipeline with VLM checks for conflict-aware pairs.</li>
+          <li>Iterative optimization that refines both model and data.</li>
+          <li>DualAlign benchmark for evaluating text–condition conflict resolution.</li>
+          <li>Strong gains in text success rate and condition adherence; robust on COCO.</li>
+        </ul>
+      </section>
+
+      <section id="teaser">
+        <h2>Teaser</h2>
+        <p>Qualitative comparison on conflicts between text prompts and conditioning inputs, highlighting dual alignment achieved by BideDPO.</p>
+        <div class="card"><img src="static/teaser.png" alt="Teaser: dual alignment under conflicts" style="width:100%; border-radius:8px; border:1px solid color-mix(in srgb, var(--muted) 15%, transparent);"></div>
+      </section>
+
+      <section id="method">
+        <h2>Method Overview</h2>
+        <p>Overview of BideDPO: bidirectionally decoupled preference pairs for text and condition, Adaptive Loss Balancing, conflict-aware data pipeline with VLM checks, and iterative optimization.</p>
+        <div class="card"><img src="static/Method.png" alt="Method overview: bidirectionally decoupled DPO with adaptive balancing" style="width:100%; border-radius:8px; border:1px solid color-mix(in srgb, var(--muted) 15%, transparent);"></div>
+      </section>
+
+      <section id="dualalign">
+        <h2>DualAlign Benchmark</h2>
+        <p>Benchmark designed to evaluate conflict resolution between text and condition, measuring text success rate and condition adherence.</p>
+        <div class="card"><img src="static/DualAlign_result.png" alt="DualAlign benchmark results" style="width:100%; border-radius:8px; border:1px solid color-mix(in srgb, var(--muted) 15%, transparent);"></div>
+      </section>
+
+      <section id="coco">
+        <h2>COCO Results</h2>
+        <p>Evaluation on the COCO dataset demonstrating robustness of BideDPO under multi-constraint alignment.</p>
+        <div class="card"><img src="static/COCO_result.png" alt="COCO robustness results" style="width:100%; border-radius:8px; border:1px solid color-mix(in srgb, var(--muted) 15%, transparent);"></div>
+      </section>
+
+      <section id="examples">
+        <h2>More Examples</h2>
+        <p>Additional cases achieving dual alignment across prompts and conditioning inputs, including abstract style conditions.</p>
+        <div class="card"><img src="static/vis_result1.png" alt="Additional dual-alignment examples" style="width:100%; border-radius:8px; border:1px solid color-mix(in srgb, var(--muted) 15%, transparent);"></div>
+      </section>
+
+      <section id="citation">
+        <h2>Citation</h2>
+        <pre><code>@article{bidedpo2025,
+  title   = {BideDPO: Conditional Image Generation with Simultaneous Text and Condition Alignment},
+  author  = {To be updated},
+  journal = {arXiv preprint arXiv:xxxx.xxxxx},
+  year    = {2025}
+}</code></pre>
+      </section>
+
+      <footer>
+        <div>© 2025 BideDPO. Built with plain HTML/CSS/JS. Update the GitHub link to your repository.</div>
+      </footer>
+    </div>
+  </body>
+</html>
