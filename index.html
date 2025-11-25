@@ -24,6 +24,9 @@
       nav a:hover { color:var(--fg); background:color-mix(in srgb, var(--card) 70%, transparent); }
       .btn { padding:8px 12px; border:1px solid color-mix(in srgb, var(--muted) 30%, transparent); border-radius:8px; background:color-mix(in srgb, var(--bg) 94%, transparent); color:var(--fg); font-weight:600; }
       .btn.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+      .cta { display:inline-flex; align-items:center; gap:10px; padding:14px 18px; border-radius:14px; background:var(--accent); color:#fff; font-weight:800; letter-spacing:.2px; box-shadow: 0 14px 28px color-mix(in srgb, var(--accent) 35%, transparent); border:1px solid color-mix(in srgb, var(--accent) 60%, transparent); transition: transform .15s ease, box-shadow .2s ease; }
+      .cta:hover { transform: translateY(-1px); box-shadow: 0 20px 34px color-mix(in srgb, var(--accent) 45%, transparent); }
+      .cta small { display:block; font-weight:600; opacity:.9; }
       .hero { padding: 40px 0; display:grid; grid-template-columns: 1.1fr 0.9fr; gap:24px; align-items:center; }
       .hero h1 { font-size: 36px; margin:0 0 12px; }
       .hero p { font-size: 16px; color:var(--muted); }
@@ -76,7 +79,6 @@
           <a href="#citation">Citation</a>
         </nav>
         <button class="btn" onclick="toggleDark()">Toggle Dark</button>
-        <a class="btn primary" href="https://github.com/your-org/BideDPO" target="_blank" rel="noopener">Code</a>
       </div>
     </header>
 
@@ -87,6 +89,12 @@
           <p>Preprint · Models, code, and benchmarks will be released</p>
           <div class="card">
             <p class="mono">BideDPO constructs bidirectionally decoupled preference pairs and balances their influence adaptively, enabling robust multi-constraint alignment across text and conditioning inputs.</p>
+          </div>
+          <div style="margin-top:16px;">
+            <a class="cta" href="https://github.com/limuloo/BideDPO" target="_blank" rel="noopener" aria-label="View code on GitHub">
+              <span style="font-size:18px;">View Code on GitHub</span>
+              <small>limuloo/BideDPO</small>
+            </a>
           </div>
         </div>
         <div>
