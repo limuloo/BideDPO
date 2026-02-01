@@ -8,164 +8,770 @@
     <meta property="og:title" content="BideDPO">
     <meta property="og:description" content="Conditional image generation with simultaneous text and condition alignment">
     <meta property="og:image" content="static/teaser.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
-      html { scroll-behavior:smooth; }
-      :root { --bg:#ffffff; --fg:#0b0b0c; --muted:#5c6670; --accent:#2f67f6; --card:#f6f8fb; }
-      html.dark { --bg:#0b0b0c; --fg:#f3f4f6; --muted:#a0a7b0; --accent:#6ea0ff; --card:#14171a; }
-      * { box-sizing:border-box; }
-      body { margin:0; font-family: system-ui,-apple-system, Segoe UI, Roboto, Arial, sans-serif; background:var(--bg); color:var(--fg); }
-      a { color:var(--accent); text-decoration:none; }
-      .container { max-width: 980px; margin: 0 auto; padding: 24px; }
-      header { display:flex; align-items:center; justify-content:space-between; padding:16px 24px; position:sticky; top:0; backdrop-filter:saturate(180%) blur(8px); background:color-mix(in srgb, var(--bg) 92%, transparent); border-bottom:1px solid color-mix(in srgb, var(--muted) 15%, transparent); z-index:100; }
-      .title { font-size: 28px; font-weight: 700; }
-      .actions { display:flex; gap:12px; align-items:center; }
-      nav { display:flex; gap:14px; margin-right:12px; }
-      nav a { color:var(--muted); font-weight:600; padding:6px 8px; border-radius:8px; }
-      nav a:hover { color:var(--fg); background:color-mix(in srgb, var(--card) 70%, transparent); }
-      .btn { padding:8px 12px; border:1px solid color-mix(in srgb, var(--muted) 30%, transparent); border-radius:8px; background:color-mix(in srgb, var(--bg) 94%, transparent); color:var(--fg); font-weight:600; }
-      .btn.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
-      .cta { display:inline-flex; align-items:center; gap:10px; padding:14px 18px; border-radius:14px; background:var(--accent); color:#fff; font-weight:800; letter-spacing:.2px; box-shadow: 0 14px 28px color-mix(in srgb, var(--accent) 35%, transparent); border:1px solid color-mix(in srgb, var(--accent) 60%, transparent); transition: transform .15s ease, box-shadow .2s ease; }
-      .cta:hover { transform: translateY(-1px); box-shadow: 0 20px 34px color-mix(in srgb, var(--accent) 45%, transparent); }
-      .cta small { display:block; font-weight:600; opacity:.9; }
-      .hero { padding: 40px 0; display:grid; grid-template-columns: 1.1fr 0.9fr; gap:24px; align-items:center; }
-      .hero h1 { font-size: 36px; margin:0 0 12px; }
-      .hero p { font-size: 16px; color:var(--muted); }
-      .card { background:var(--card); border:1px solid color-mix(in srgb, var(--muted) 12%, transparent); border-radius:12px; padding:16px; box-shadow: 0 8px 24px color-mix(in srgb, var(--muted) 20%, transparent); }
-      img.teaser { width:100%; border-radius:12px; border:1px solid color-mix(in srgb, var(--muted) 15%, transparent); transition:transform .2s ease; }
-      img.teaser:hover { transform:scale(1.015); }
-      section { margin: 32px 0; scroll-margin-top: 80px; }
-      h2 { margin:0 0 12px; font-size:22px; }
-      ul { margin: 8px 0 0 18px; }
-      code, pre { background:var(--card); border:1px solid color-mix(in srgb, var(--muted) 12%, transparent); border-radius:8px; }
-      pre { padding:12px; overflow:auto; }
-      .lang-toggle { display:flex; gap:8px; align-items:center; }
-      .badge { display:inline-block; padding:4px 8px; border-radius:999px; font-size:12px; background:color-mix(in srgb, var(--accent) 16%, var(--card)); color:var(--accent); border:1px solid color-mix(in srgb, var(--accent) 45%, transparent); }
-      footer { margin-top: 32px; padding: 16px 0; color:var(--muted); border-top:1px solid color-mix(in srgb, var(--muted) 15%, transparent); }
-      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
-      .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap:16px; }
-      .figure { position:relative; overflow:hidden; border-radius:12px; border:1px solid color-mix(in srgb, var(--muted) 15%, transparent); background:var(--card); }
-      .figure img { width:100%; display:block; transition: transform .25s ease, filter .25s ease; }
-      .figure:hover img { transform:scale(1.03); filter:brightness(1.05); }
-      .figcap { position:absolute; left:0; bottom:0; right:0; padding:8px 10px; font-size:13px; color:#fff; background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.65) 100%); }
-      .lightbox { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.85); z-index:200; }
-      .lightbox.show { display:flex; }
-      .lightbox img { max-width:90vw; max-height:80vh; border-radius:12px; border:1px solid #333; }
-      .lightbox .caption { color:#fff; margin-top:12px; text-align:center; max-width:75vw; }
-      @media (max-width: 860px) { .hero { grid-template-columns: 1fr; } nav { display:none; } }
+      html { scroll-behavior: smooth; }
+      :root {
+        --bg: #fafbfc;
+        --bg-alt: #ffffff;
+        --fg: #1a1a2e;
+        --fg-secondary: #4a5568;
+        --muted: #718096;
+        --accent: #6366f1;
+        --accent-light: #818cf8;
+        --accent-dark: #4f46e5;
+        --gradient-start: #6366f1;
+        --gradient-end: #8b5cf6;
+        --card: #ffffff;
+        --card-border: rgba(0,0,0,0.06);
+        --success: #10b981;
+        --success-bg: #ecfdf5;
+        --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+        --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+        --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+      }
+      html.dark {
+        --bg: #0f0f1a;
+        --bg-alt: #1a1a2e;
+        --fg: #f1f5f9;
+        --fg-secondary: #cbd5e1;
+        --muted: #94a3b8;
+        --accent: #818cf8;
+        --accent-light: #a5b4fc;
+        --accent-dark: #6366f1;
+        --gradient-start: #818cf8;
+        --gradient-end: #a78bfa;
+        --card: #1e1e32;
+        --card-border: rgba(255,255,255,0.08);
+        --success: #34d399;
+        --success-bg: rgba(16, 185, 129, 0.1);
+        --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+        --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.4);
+        --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.4);
+        --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.5);
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        background: var(--bg);
+        color: var(--fg);
+        line-height: 1.7;
+        font-size: 16px;
+      }
+      a { color: var(--accent); text-decoration: none; transition: color 0.2s; }
+      a:hover { color: var(--accent-light); }
+
+      /* Header */
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        backdrop-filter: saturate(180%) blur(20px);
+        background: color-mix(in srgb, var(--bg) 85%, transparent);
+        border-bottom: 1px solid var(--card-border);
+      }
+      .header-inner {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 16px 32px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .logo {
+        font-size: 24px;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .nav-actions { display: flex; align-items: center; gap: 8px; }
+      nav { display: flex; gap: 4px; margin-right: 16px; }
+      nav a {
+        color: var(--muted);
+        font-weight: 500;
+        font-size: 14px;
+        padding: 8px 12px;
+        border-radius: 8px;
+        transition: all 0.2s;
+      }
+      nav a:hover {
+        color: var(--fg);
+        background: var(--card);
+      }
+      .btn-icon {
+        width: 40px;
+        height: 40px;
+        border: 1px solid var(--card-border);
+        border-radius: 10px;
+        background: var(--card);
+        color: var(--fg);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+      }
+      .btn-icon:hover {
+        background: var(--accent);
+        color: white;
+        border-color: var(--accent);
+      }
+
+      /* Container */
+      .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 32px;
+      }
+
+      /* Hero Section */
+      .hero {
+        padding: 80px 0 60px;
+        position: relative;
+      }
+      .hero::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100%;
+        max-width: 800px;
+        height: 400px;
+        background: radial-gradient(ellipse at center, color-mix(in srgb, var(--accent) 15%, transparent) 0%, transparent 70%);
+        pointer-events: none;
+        z-index: -1;
+      }
+      .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 16px;
+        background: var(--success-bg);
+        color: var(--success);
+        border-radius: 100px;
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 24px;
+        border: 1px solid color-mix(in srgb, var(--success) 30%, transparent);
+      }
+      .hero-badge svg { width: 16px; height: 16px; }
+      .hero h1 {
+        font-size: clamp(36px, 5vw, 56px);
+        font-weight: 800;
+        line-height: 1.1;
+        margin-bottom: 20px;
+        max-width: 900px;
+      }
+      .hero h1 span {
+        background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .hero-subtitle {
+        font-size: 18px;
+        color: var(--fg-secondary);
+        max-width: 700px;
+        margin-bottom: 32px;
+      }
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 48px;
+      }
+      .btn-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 28px;
+        background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+        color: white;
+        font-weight: 600;
+        font-size: 15px;
+        border-radius: 12px;
+        box-shadow: var(--shadow-lg), 0 0 0 0 var(--accent);
+        transition: all 0.3s;
+      }
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-xl), 0 0 30px color-mix(in srgb, var(--accent) 40%, transparent);
+        color: white;
+      }
+      .btn-primary svg { width: 20px; height: 20px; }
+      .btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 28px;
+        background: var(--card);
+        color: var(--fg);
+        font-weight: 600;
+        font-size: 15px;
+        border-radius: 12px;
+        border: 1px solid var(--card-border);
+        box-shadow: var(--shadow-sm);
+        transition: all 0.3s;
+      }
+      .btn-secondary:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+      }
+      .btn-secondary svg { width: 20px; height: 20px; }
+      .hero-image {
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: var(--shadow-xl);
+        border: 1px solid var(--card-border);
+      }
+      .hero-image img {
+        width: 100%;
+        display: block;
+        transition: transform 0.5s;
+      }
+      .hero-image:hover img { transform: scale(1.02); }
+
+      /* Authors */
+      .authors {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px 24px;
+        margin-bottom: 32px;
+        font-size: 15px;
+        color: var(--fg-secondary);
+      }
+      .author { font-weight: 500; }
+
+      /* Section Styles */
+      section {
+        padding: 60px 0;
+        scroll-margin-top: 80px;
+      }
+      .section-header {
+        margin-bottom: 32px;
+      }
+      .section-label {
+        display: inline-block;
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--accent);
+        margin-bottom: 8px;
+      }
+      .section-title {
+        font-size: 32px;
+        font-weight: 700;
+        margin-bottom: 12px;
+      }
+      .section-desc {
+        font-size: 17px;
+        color: var(--fg-secondary);
+        max-width: 700px;
+      }
+
+      /* News Section */
+      .news-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .news-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 20px 24px;
+        background: var(--card);
+        border-radius: 12px;
+        border: 1px solid var(--card-border);
+        box-shadow: var(--shadow-sm);
+        transition: all 0.3s;
+      }
+      .news-item:hover {
+        border-color: var(--accent);
+        box-shadow: var(--shadow-md);
+        transform: translateX(4px);
+      }
+      .news-date {
+        flex-shrink: 0;
+        padding: 6px 12px;
+        background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+        color: white;
+        font-size: 13px;
+        font-weight: 600;
+        border-radius: 6px;
+      }
+      .news-content {
+        font-size: 15px;
+        color: var(--fg-secondary);
+      }
+      .news-content strong {
+        color: var(--fg);
+      }
+
+      /* Card Component */
+      .card {
+        background: var(--card);
+        border: 1px solid var(--card-border);
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: var(--shadow-md);
+        transition: all 0.3s;
+      }
+      .card:hover {
+        box-shadow: var(--shadow-lg);
+        transform: translateY(-4px);
+      }
+
+      /* Abstract */
+      .abstract-content {
+        background: var(--card);
+        border: 1px solid var(--card-border);
+        border-radius: 16px;
+        padding: 32px;
+        box-shadow: var(--shadow-md);
+      }
+      .abstract-content p {
+        margin-bottom: 16px;
+        color: var(--fg-secondary);
+        font-size: 16px;
+        line-height: 1.8;
+      }
+      .abstract-content p:last-child { margin-bottom: 0; }
+
+      /* Highlights Grid */
+      .highlights-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+      }
+      .highlight-card {
+        background: var(--card);
+        border: 1px solid var(--card-border);
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.3s;
+        display: flex;
+        gap: 16px;
+        align-items: flex-start;
+      }
+      .highlight-card:hover {
+        border-color: var(--accent);
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+      }
+      .highlight-icon {
+        flex-shrink: 0;
+        width: 44px;
+        height: 44px;
+        background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 15%, transparent), color-mix(in srgb, var(--accent) 8%, transparent));
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--accent);
+      }
+      .highlight-icon svg { width: 22px; height: 22px; }
+      .highlight-text {
+        font-size: 15px;
+        color: var(--fg-secondary);
+        line-height: 1.6;
+      }
+      .highlight-text strong {
+        color: var(--fg);
+        font-weight: 600;
+      }
+
+      /* Image Card */
+      .image-card {
+        background: var(--card);
+        border: 1px solid var(--card-border);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: var(--shadow-md);
+        transition: all 0.3s;
+      }
+      .image-card:hover {
+        box-shadow: var(--shadow-xl);
+        transform: translateY(-4px);
+      }
+      .image-card img {
+        width: 100%;
+        display: block;
+        transition: transform 0.5s;
+      }
+      .image-card:hover img { transform: scale(1.02); }
+      .image-card-caption {
+        padding: 16px 20px;
+        font-size: 14px;
+        color: var(--muted);
+        border-top: 1px solid var(--card-border);
+        background: color-mix(in srgb, var(--card) 50%, var(--bg));
+      }
+
+      /* Citation */
+      .citation-card {
+        background: var(--card);
+        border: 1px solid var(--card-border);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: var(--shadow-md);
+      }
+      .citation-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        background: color-mix(in srgb, var(--accent) 8%, var(--card));
+        border-bottom: 1px solid var(--card-border);
+      }
+      .citation-header span {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--accent);
+      }
+      .btn-copy {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        background: var(--card);
+        color: var(--fg);
+        font-size: 13px;
+        font-weight: 500;
+        border: 1px solid var(--card-border);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .btn-copy:hover {
+        background: var(--accent);
+        color: white;
+        border-color: var(--accent);
+      }
+      .btn-copy svg { width: 16px; height: 16px; }
+      .citation-code {
+        padding: 20px 24px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 13px;
+        line-height: 1.7;
+        color: var(--fg-secondary);
+        overflow-x: auto;
+        background: var(--card);
+      }
+
+      /* Footer */
+      footer {
+        margin-top: 40px;
+        padding: 32px 0;
+        border-top: 1px solid var(--card-border);
+        text-align: center;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      /* Responsive */
+      @media (max-width: 860px) {
+        .header-inner { padding: 12px 20px; }
+        nav { display: none; }
+        .container { padding: 0 20px; }
+        .hero { padding: 48px 0 40px; }
+        .hero h1 { font-size: 32px; }
+        section { padding: 40px 0; }
+        .highlights-grid { grid-template-columns: 1fr; }
+        .authors { gap: 8px 16px; font-size: 14px; }
+      }
+
+      /* Animations */
+      @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .animate-in {
+        animation: fadeInUp 0.6s ease forwards;
+      }
     </style>
     <script>
-      function toggleDark(){
-        const html=document.documentElement; html.classList.toggle('dark');
-        localStorage.setItem('bidedpo-dark', html.classList.contains('dark')?'1':'0');
+      function toggleDark() {
+        const html = document.documentElement;
+        html.classList.toggle('dark');
+        localStorage.setItem('bidedpo-dark', html.classList.contains('dark') ? '1' : '0');
       }
-      document.addEventListener('DOMContentLoaded', ()=>{
-        if(localStorage.getItem('bidedpo-dark')==='1'){ document.documentElement.classList.add('dark'); }
+      function copyBibtex() {
+        const code = document.querySelector('.citation-code').innerText;
+        navigator.clipboard.writeText(code).then(() => {
+          const btn = document.querySelector('.btn-copy');
+          const originalText = btn.innerHTML;
+          btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg> Copied!';
+          setTimeout(() => { btn.innerHTML = originalText; }, 2000);
+        });
+      }
+      document.addEventListener('DOMContentLoaded', () => {
+        if (localStorage.getItem('bidedpo-dark') === '1') {
+          document.documentElement.classList.add('dark');
+        }
       });
     </script>
   </head>
   <body>
     <header>
-      <div class="title">BideDPO</div>
-      <div class="actions">
-        <nav>
-          <a href="#overview">Overview</a>
-          <a href="#abstract">Abstract</a>
-          <a href="#highlights">Highlights</a>
-          <a href="#teaser">Teaser</a>
-          <a href="#method">Method</a>
-          <a href="#dualalign">DualAlign</a>
-          <a href="#coco">COCO</a>
-          <a href="#examples">Examples</a>
-          <a href="#citation">Citation</a>
-        </nav>
-        <button class="btn" onclick="toggleDark()">Toggle Dark</button>
+      <div class="header-inner">
+        <div class="logo">BideDPO</div>
+        <div class="nav-actions">
+          <nav>
+            <a href="#overview">Overview</a>
+            <a href="#news">News</a>
+            <a href="#abstract">Abstract</a>
+            <a href="#highlights">Highlights</a>
+            <a href="#method">Method</a>
+            <a href="#results">Results</a>
+            <a href="#citation">Citation</a>
+          </nav>
+          <button class="btn-icon" onclick="toggleDark()" aria-label="Toggle dark mode">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+          </button>
+        </div>
       </div>
     </header>
 
-    <div class="container">
-      <section class="hero" id="overview">
-        <div>
-          <h1>Conditional Image Generation with Simultaneous Text and Condition Alignment</h1>
-          <p>Preprint · Models, code, and benchmarks will be released</p>
-          <div class="card">
-            <p class="mono">BideDPO constructs bidirectionally decoupled preference pairs and balances their influence adaptively, enabling robust multi-constraint alignment across text and conditioning inputs.</p>
+    <main>
+      <div class="container">
+        <section class="hero" id="overview">
+          <div class="hero-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            Accepted by ICLR 2026
           </div>
-          <div style="margin-top:16px;">
-            <a class="cta" href="https://github.com/limuloo/BideDPO" target="_blank" rel="noopener" aria-label="View code on GitHub">
-              <span style="font-size:18px;">View Code on GitHub</span>
-              <small>limuloo/BideDPO</small>
+          <h1><span>BideDPO:</span> Conditional Image Generation with Simultaneous Text and Condition Alignment</h1>
+          <p class="hero-subtitle">BideDPO constructs bidirectionally decoupled preference pairs and balances their influence adaptively, enabling robust multi-constraint alignment across text and conditioning inputs.</p>
+          
+          <div class="authors">
+            <span class="author">Dewei Zhou</span>
+            <span class="author">Mingwei Li</span>
+            <span class="author">Zongxin Yang</span>
+            <span class="author">Yu Lu</span>
+            <span class="author">Yunqiu Xu</span>
+            <span class="author">Zhizhong Wang</span>
+            <span class="author">Zeyi Huang</span>
+            <span class="author">Yi Yang</span>
+          </div>
+
+          <div class="hero-actions">
+            <a class="btn-primary" href="https://github.com/limuloo/BideDPO" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+              </svg>
+              View on GitHub
+            </a>
+            <a class="btn-secondary" href="https://arxiv.org/abs/2511.19268" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+              </svg>
+              Read Paper
             </a>
           </div>
-        </div>
-        <div>
-          <img class="teaser" src="static/teaser.png" alt="BideDPO teaser">
-        </div>
-      </section>
 
-      <section id="abstract">
-        <h2>Abstract</h2>
-        <div>
-          <p>Conditional image generation augments text-to-image synthesis with structural, spatial, or stylistic priors and is used in many domains. However, current methods struggle to harmonize guidance from both sources when conflicts arise: (1) input-level conflict, where the semantics of the conditioning image contradict the text prompt, and (2) model-bias conflict, where learned generative biases hinder alignment even when the condition and text are compatible.</p>
-          <p>Preference-based optimization techniques, such as DPO, offer a promising solution but remain limited: naive DPO suffers from gradient entanglement between text and condition signals and lacks disentangled, conflict-aware training data for multi-constraint tasks. We propose a self-driven, bidirectionally decoupled DPO framework (BideDPO). Our method constructs two disentangled preference pairs for each sample—one for the condition and one for the text—and manages their influence via Adaptive Loss Balancing. We introduce an automated data pipeline with VLM checks to generate disentangled, conflict-aware data, and embed the entire process within an iterative optimization strategy that progressively refines both the model and the data.</p>
-          <p>We build a DualAlign benchmark to evaluate conflict resolution between text and condition. Experiments on common modalities show that BideDPO delivers substantial gains in text success rate (e.g., +35%) and condition adherence, with robustness validated on COCO. Code, models, and benchmarks will be released.</p>
-        </div>
-      </section>
+          <div class="hero-image">
+            <img src="static/teaser.png" alt="BideDPO teaser showing dual alignment under conflicts">
+          </div>
+        </section>
 
-      <section id="highlights">
-        <h2>Highlights</h2>
-        <ul>
-          <li>Bidirectionally decoupled preference pairs for text and condition.</li>
-          <li>Adaptive Loss Balancing to avoid gradient entanglement.</li>
-          <li>Self-driven data pipeline with VLM checks for conflict-aware pairs.</li>
-          <li>Iterative optimization that refines both model and data.</li>
-          <li>DualAlign benchmark for evaluating text–condition conflict resolution.</li>
-          <li>Strong gains in text success rate and condition adherence; robust on COCO.</li>
-        </ul>
-      </section>
+        <section id="news">
+          <div class="section-header">
+            <div class="section-label">Updates</div>
+            <h2 class="section-title">News</h2>
+          </div>
+          <div class="news-list">
+            <div class="news-item">
+              <span class="news-date">2026.01</span>
+              <div class="news-content">
+                <strong>BideDPO</strong> has been accepted by <strong>ICLR 2026</strong>! We will release all models, code, and benchmarks soon.
+              </div>
+            </div>
+          </div>
+        </section>
 
-      <section id="teaser">
-        <h2>Teaser</h2>
-        <p>Qualitative comparison on conflicts between text prompts and conditioning inputs, highlighting dual alignment achieved by BideDPO.</p>
-        <div class="card"><img src="static/teaser.png" alt="Teaser: dual alignment under conflicts" style="width:100%; border-radius:8px; border:1px solid color-mix(in srgb, var(--muted) 15%, transparent);"></div>
-      </section>
+        <section id="abstract">
+          <div class="section-header">
+            <div class="section-label">Paper</div>
+            <h2 class="section-title">Abstract</h2>
+          </div>
+          <div class="abstract-content">
+            <p>Conditional image generation augments text-to-image synthesis with structural, spatial, or stylistic priors and is used in many domains. However, current methods struggle to harmonize guidance from both sources when conflicts arise: <strong>(1) input-level conflict</strong>, where the semantics of the conditioning image contradict the text prompt, and <strong>(2) model-bias conflict</strong>, where learned generative biases hinder alignment even when the condition and text are compatible.</p>
+            <p>Preference-based optimization techniques, such as DPO, offer a promising solution but remain limited: naive DPO suffers from gradient entanglement between text and condition signals and lacks disentangled, conflict-aware training data for multi-constraint tasks. We propose a self-driven, <strong>bidirectionally decoupled DPO framework (BideDPO)</strong>. Our method constructs two disentangled preference pairs for each sample—one for the condition and one for the text—and manages their influence via Adaptive Loss Balancing.</p>
+            <p>We introduce an automated data pipeline with VLM checks to generate disentangled, conflict-aware data, and embed the entire process within an iterative optimization strategy that progressively refines both the model and the data. We build a <strong>DualAlign benchmark</strong> to evaluate conflict resolution between text and condition. Experiments on common modalities show that BideDPO delivers substantial gains in text success rate (<strong>+35%</strong>) and condition adherence, with robustness validated on COCO.</p>
+          </div>
+        </section>
 
-      <section id="method">
-        <h2>Method Overview</h2>
-        <p>Overview of BideDPO: bidirectionally decoupled preference pairs for text and condition, Adaptive Loss Balancing, conflict-aware data pipeline with VLM checks, and iterative optimization.</p>
-        <div class="card"><img src="static/Method.png" alt="Method overview: bidirectionally decoupled DPO with adaptive balancing" style="width:100%; border-radius:8px; border:1px solid color-mix(in srgb, var(--muted) 15%, transparent);"></div>
-      </section>
+        <section id="highlights">
+          <div class="section-header">
+            <div class="section-label">Key Contributions</div>
+            <h2 class="section-title">Highlights</h2>
+          </div>
+          <div class="highlights-grid">
+            <div class="highlight-card">
+              <div class="highlight-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                </svg>
+              </div>
+              <div class="highlight-text"><strong>Bidirectionally Decoupled</strong> preference pairs for text and condition signals.</div>
+            </div>
+            <div class="highlight-card">
+              <div class="highlight-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+                  <line x1="9" y1="9" x2="9.01" y2="9"></line>
+                  <line x1="15" y1="9" x2="15.01" y2="9"></line>
+                </svg>
+              </div>
+              <div class="highlight-text"><strong>Adaptive Loss Balancing</strong> to avoid gradient entanglement.</div>
+            </div>
+            <div class="highlight-card">
+              <div class="highlight-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                </svg>
+              </div>
+              <div class="highlight-text"><strong>Self-driven data pipeline</strong> with VLM checks for conflict-aware pairs.</div>
+            </div>
+            <div class="highlight-card">
+              <div class="highlight-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="23 4 23 10 17 10"></polyline>
+                  <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                </svg>
+              </div>
+              <div class="highlight-text"><strong>Iterative optimization</strong> that refines both model and data together.</div>
+            </div>
+            <div class="highlight-card">
+              <div class="highlight-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+                </svg>
+              </div>
+              <div class="highlight-text"><strong>DualAlign benchmark</strong> for evaluating text–condition conflict resolution.</div>
+            </div>
+            <div class="highlight-card">
+              <div class="highlight-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="20" x2="12" y2="10"></line>
+                  <line x1="18" y1="20" x2="18" y2="4"></line>
+                  <line x1="6" y1="20" x2="6" y2="16"></line>
+                </svg>
+              </div>
+              <div class="highlight-text"><strong>+35% text success rate</strong> gains and robust on COCO dataset.</div>
+            </div>
+          </div>
+        </section>
 
-      <section id="dualalign">
-        <h2>DualAlign Benchmark</h2>
-        <p>Benchmark designed to evaluate conflict resolution between text and condition, measuring text success rate and condition adherence.</p>
-        <div class="card"><img src="static/DualAlign_result.png" alt="DualAlign benchmark results" style="width:100%; border-radius:8px; border:1px solid color-mix(in srgb, var(--muted) 15%, transparent);"></div>
-      </section>
+        <section id="method">
+          <div class="section-header">
+            <div class="section-label">Technical Approach</div>
+            <h2 class="section-title">Method Overview</h2>
+            <p class="section-desc">Overview of BideDPO: bidirectionally decoupled preference pairs for text and condition, Adaptive Loss Balancing, conflict-aware data pipeline with VLM checks, and iterative optimization.</p>
+          </div>
+          <div class="image-card">
+            <img src="static/Method.png" alt="Method overview: bidirectionally decoupled DPO with adaptive balancing">
+            <div class="image-card-caption">Figure: BideDPO framework with bidirectionally decoupled preference optimization.</div>
+          </div>
+        </section>
 
-      <section id="coco">
-        <h2>COCO Results</h2>
-        <p>Evaluation on the COCO dataset demonstrating robustness of BideDPO under multi-constraint alignment.</p>
-        <div class="card"><img src="static/COCO_result.png" alt="COCO robustness results" style="width:100%; border-radius:8px; border:1px solid color-mix(in srgb, var(--muted) 15%, transparent);"></div>
-      </section>
+        <section id="results">
+          <div class="section-header">
+            <div class="section-label">Experiments</div>
+            <h2 class="section-title">Results</h2>
+          </div>
 
-      <section id="examples">
-        <h2>More Examples</h2>
-        <p>Additional cases achieving dual alignment across prompts and conditioning inputs, including abstract style conditions.</p>
-        <div class="card"><img src="static/vis_result1.png" alt="Additional dual-alignment examples" style="width:100%; border-radius:8px; border:1px solid color-mix(in srgb, var(--muted) 15%, transparent);"></div>
-      </section>
+          <div style="margin-bottom: 40px;">
+            <h3 style="font-size: 20px; margin-bottom: 16px; color: var(--fg);">DualAlign Benchmark</h3>
+            <p class="section-desc" style="margin-bottom: 20px;">Benchmark designed to evaluate conflict resolution between text and condition, measuring text success rate and condition adherence.</p>
+            <div class="image-card">
+              <img src="static/DualAlign_result.png" alt="DualAlign benchmark results">
+              <div class="image-card-caption">Table: Quantitative results on the DualAlign benchmark.</div>
+            </div>
+          </div>
 
-      <section id="citation">
-        <h2>Citation</h2>
-        <pre><code>@article{bidedpo2025,
-  title   = {BideDPO: Conditional Image Generation with Simultaneous Text and Condition Alignment},
-  author  = {To be updated},
-  journal = {arXiv preprint arXiv:xxxx.xxxxx},
-  year    = {2025}
-}</code></pre>
-      </section>
+          <div style="margin-bottom: 40px;">
+            <h3 style="font-size: 20px; margin-bottom: 16px; color: var(--fg);">COCO Results</h3>
+            <p class="section-desc" style="margin-bottom: 20px;">Evaluation on the COCO dataset demonstrating robustness of BideDPO under multi-constraint alignment.</p>
+            <div class="image-card">
+              <img src="static/COCO_result.png" alt="COCO robustness results">
+              <div class="image-card-caption">Table: Performance comparison on the COCO dataset.</div>
+            </div>
+          </div>
 
-      <footer>
-        <div>© 2025 BideDPO. Built with plain HTML/CSS/JS. Update the GitHub link to your repository.</div>
-      </footer>
-    </div>
+          <div>
+            <h3 style="font-size: 20px; margin-bottom: 16px; color: var(--fg);">Visual Examples</h3>
+            <p class="section-desc" style="margin-bottom: 20px;">Additional cases achieving dual alignment across prompts and conditioning inputs, including abstract style conditions.</p>
+            <div class="image-card">
+              <img src="static/vis_result1.png" alt="Additional dual-alignment examples">
+              <div class="image-card-caption">Figure: Qualitative comparison showing improved text-condition alignment.</div>
+            </div>
+          </div>
+        </section>
+
+        <section id="citation">
+          <div class="section-header">
+            <div class="section-label">Reference</div>
+            <h2 class="section-title">Citation</h2>
+            <p class="section-desc">If you find BideDPO useful in your research, please consider citing our paper.</p>
+          </div>
+          <div class="citation-card">
+            <div class="citation-header">
+              <span>BibTeX</span>
+              <button class="btn-copy" onclick="copyBibtex()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                Copy
+              </button>
+            </div>
+            <pre class="citation-code">@misc{zhou2025bidedpo,
+  title={BideDPO: Conditional Image Generation with Simultaneous Text and Condition Alignment}, 
+  author={Dewei Zhou and Mingwei Li and Zongxin Yang and Yu Lu and Yunqiu Xu and Zhizhong Wang and Zeyi Huang and Yi Yang},
+  year={2025},
+  eprint={2511.19268},
+  archivePrefix={arXiv},
+  primaryClass={cs.CV},
+  url={https://arxiv.org/abs/2511.19268}, 
+}</pre>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer>
+      <div class="container">
+        <p>&copy; 2025 BideDPO Authors. All rights reserved.</p>
+      </div>
+    </footer>
   </body>
 </html>
