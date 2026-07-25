@@ -92,14 +92,13 @@ Code release is in preparation. This repository will host:
 If you find BideDPO useful, please consider citing:
 
 ```bibtex
-@misc{zhou2025bidedpo,
-  title={BideDPO: Conditional Image Generation with Simultaneous Text and Condition Alignment}, 
-  author={Dewei Zhou and Mingwei Li and Zongxin Yang and Yu Lu and Yunqiu Xu and Zhizhong Wang and Zeyi Huang and Yi Yang},
-  year={2025},
-  eprint={2511.19268},
-  archivePrefix={arXiv},
-  primaryClass={cs.CV},
-  url={https://arxiv.org/abs/2511.19268}, 
+@inproceedings{
+zhou2026bidedpo,
+title={Bide{DPO}: Conditional Image Generation with Simultaneous Text and Condition Alignment},
+author={Dewei Zhou and Mingwei Li and Zongxin Yang and Yu Lu and Yunqiu Xu and Zhizhong Wang and Zeyi Huang and Yi Yang},
+booktitle={The Fourteenth International Conference on Learning Representations},
+year={2026},
+url={https://openreview.net/forum?id=DNBlGOsIxn}
 }
 ```
 
