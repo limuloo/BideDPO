@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">BideDPO bidirectional alignment mark</title>
+  <rect width="64" height="64" rx="12" fill="#171a19"/>
+  <path d="M18 13v39" fill="none" stroke="#f2f4f3" stroke-width="7"/>
+  <path d="M21 16h14c8 0 12 3.5 12 9s-4 9-12 9H21" fill="none" stroke="#e36b5c" stroke-width="7" stroke-linejoin="round"/>
+  <path d="M21 34h15c9 0 14 3.5 14 9s-5 9-14 9H21" fill="none" stroke="#54c4bb" stroke-width="7" stroke-linejoin="round"/>
+  <rect x="14.5" y="30" width="7" height="8" fill="#f0ce59"/>
+</svg>
