@@ -3,7 +3,7 @@
 [![arXiv](https://img.shields.io/badge/arXiv-2511.19268-b31b1b.svg)](https://arxiv.org/abs/2511.19268)
 [![Project Page](https://img.shields.io/badge/Project-Page-blue)](https://limuloo.github.io/BideDPO/)
 [![GitHub](https://img.shields.io/badge/Code-GitHub-yellowgreen)](https://github.com/limuloo/BideDPO)
-[![Venue](https://img.shields.io/badge/ICLR-2026-green)](https://openreview.net/)
+[![Venue](https://img.shields.io/badge/ICLR-2026-green)](https://openreview.net/forum?id=DNBlGOsIxn)
 
 Official implementation for the paper: **BideDPO: Conditional Image Generation with Simultaneous Text and Condition Alignment**.
 
